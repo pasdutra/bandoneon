@@ -1,0 +1,12 @@
+{
+  "name": "Bandoneon Lab",
+  "short_name": "Bandoneon Lab",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08080a",
+  "theme_color": "#08080a",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/bandoneon-icon.png", "sizes": "any", "type": "image/png", "purpose": "any" }
+  ]
+}
