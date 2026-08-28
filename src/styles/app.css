@@ -631,6 +631,23 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .beat-dot.active { background: var(--accent); transform: scale(1.25); box-shadow: 0 0 12px rgba(242,177,52,.6); }
 .beat-dot.accent.active { background: var(--accent-strong); box-shadow: 0 0 16px rgba(242,177,52,.85); }
 
+.update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 10px clamp(16px, 2.2vw, 42px);
+  background: rgba(242,177,52,.12);
+  border-bottom: 1px solid rgba(242,177,52,.3);
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 650;
+}
+.update-banner-actions { display: flex; align-items: center; gap: 10px; }
+.update-banner-install { min-height: 32px; padding: 0 16px; font-size: 12px; }
+.update-banner-dismiss { border: 0; background: transparent; color: var(--accent-strong); opacity: .7; font-size: 18px; line-height: 1; padding: 0 4px; }
+.update-banner-dismiss:hover { opacity: 1; }
+
 footer {
   display: flex;
   justify-content: space-between;

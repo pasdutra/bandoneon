@@ -5,6 +5,7 @@ import { Keyboard } from "./components/Keyboard";
 import { Metronome } from "./components/Metronome";
 import { ParrillaPositionPanel } from "./components/ParrillaPositionPanel";
 import { Staff } from "./components/Staff";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { parseChord } from "./music/chords";
 import { formatChordName, formatNoteName, formatToneName } from "./music/notationFormat";
 import { noteMatchesQuery, parseNote } from "./music/notes";
@@ -189,6 +190,8 @@ function AppShell() {
           </div>
         </div>
       </header>
+
+      <UpdateBanner t={t} />
 
       <main className="app-shell">
       <div className="search-panels">

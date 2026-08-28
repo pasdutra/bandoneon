@@ -75,6 +75,9 @@ export interface Strings {
   metronomeStart: string;
   metronomeStop: string;
   closeLabel: string;
+  updateAvailable: (version: string) => string;
+  updateInstall: string;
+  updateInstalling: string;
 }
 
 export const STRINGS: Record<Language, Strings> = {
@@ -153,6 +156,9 @@ export const STRINGS: Record<Language, Strings> = {
     metronomeStart: "Iniciar",
     metronomeStop: "Parar",
     closeLabel: "Fechar",
+    updateAvailable: (version) => `Nova versão disponível: ${version}`,
+    updateInstall: "Atualizar e reiniciar",
+    updateInstalling: "Instalando…",
   },
   es: {
     brandSubtitle: "mapa de estudio · 71 botones",
@@ -229,5 +235,8 @@ export const STRINGS: Record<Language, Strings> = {
     metronomeStart: "Iniciar",
     metronomeStop: "Detener",
     closeLabel: "Cerrar",
+    updateAvailable: (version) => `Nueva versión disponible: ${version}`,
+    updateInstall: "Actualizar y reiniciar",
+    updateInstalling: "Instalando…",
   },
 };
