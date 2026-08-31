@@ -6,6 +6,7 @@ import { Metronome } from "./components/Metronome";
 import { ParrillaPositionPanel } from "./components/ParrillaPositionPanel";
 import { Staff } from "./components/Staff";
 import { UpdateBanner } from "./components/UpdateBanner";
+import type { Strings } from "./i18n/strings";
 import { parseChord } from "./music/chords";
 import { formatChordName, formatNoteName, formatToneName } from "./music/notationFormat";
 import { noteMatchesQuery, parseNote } from "./music/notes";
@@ -16,7 +17,7 @@ import {
   omittedDegreesOf,
   type ParrillaChord,
 } from "./music/parrillaLibrary";
-import { MusicSelectionProvider, useMusicSelection, type HighlightTone } from "./state/MusicSelectionContext";
+import { MusicSelectionProvider, useMusicSelection, type HandMode, type HighlightTone } from "./state/MusicSelectionContext";
 
 function allCurrentPitches(direction: BellowsDirection) {
   return [...bandoneonLayout.leftHand.buttons, ...bandoneonLayout.rightHand.buttons].map((button) => button[direction]);
@@ -93,6 +94,224 @@ function DirectionRail({
   );
 }
 
+function SearchDrawer({
+  t,
+  handMode,
+  activeParrilla,
+  omittedDegrees,
+  resultCount,
+}: {
+  t: Strings;
+  handMode: HandMode;
+  activeParrilla: ParrillaChord | null;
+  omittedDegrees: Set<string>;
+  resultCount: number | null;
+}) {
+  const {
+    notationMode,
+    direction,
+    noteQuery,
+    setNoteQuery,
+    chordQuery,
+    setChordQuery,
+    chord,
+    note,
+    noteError,
+    chordError,
+    buttonDetail,
+    favorites,
+    isFavorite,
+    toggleFavorite,
+    removeFavorite,
+    searchNote,
+    searchChord,
+    chooseFavorite,
+  } = useMusicSelection();
+
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handlePointerDown(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [open]);
+
+  return (
+    <div className="search-drawer-root" ref={containerRef}>
+      <button
+        type="button"
+        className="search-drawer-toggle"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span aria-hidden="true">⌕</span>
+        {t.searchDrawerLabel}
+      </button>
+
+      <div className={`search-drawer ${open ? "open" : ""}`}>
+        <div className="search-drawer-head">
+          <span>{t.searchDrawerLabel}</span>
+          <button type="button" className="search-drawer-close" aria-label={t.closeLabel} onClick={() => setOpen(false)}>×</button>
+        </div>
+
+        <div className="search-drawer-body">
+          <section className="notes-section">
+            <div className="section-heading">
+              <div>
+                <span>{t.notesHeading}</span>
+                <small>{t.notesSubtitle}</small>
+              </div>
+              <div className="section-rule" />
+            </div>
+
+            <div className="search-bar-row">
+              <form className="search-form" onSubmit={(event) => { event.preventDefault(); searchNote(); }}>
+                <div className="search-field">
+                  <span className="search-icon" aria-hidden="true">⌕</span>
+                  <input
+                    value={noteQuery}
+                    onChange={(event) => setNoteQuery(event.target.value)}
+                    placeholder={t.notePlaceholder}
+                    aria-label={t.noteSearchLabel}
+                  />
+                </div>
+                <button className="primary" type="submit">{t.show}</button>
+              </form>
+            </div>
+
+            {noteError ? (
+              <div className="error">{noteError}</div>
+            ) : note ? (
+              <div className="study-heading" aria-live="polite">
+                <div className="result-title">{formatNoteName(note, notationMode)}</div>
+                <div className="note-detail">
+                  {note.octave === undefined ? t.allOctaves(resultCount ?? 0) : t.exactNote(resultCount ?? 0)}
+                </div>
+              </div>
+            ) : (
+              <div className="note-detail">{t.noteEmptyState}</div>
+            )}
+
+            {buttonDetail && (
+              <section className="button-detail" aria-live="polite">
+                <div className="bd-row">
+                  <span className="bd-label">{t.buttonDetailLabel}</span>
+                  <span className="bd-value">{buttonDetail.hand === "left" ? t.handLeft : t.handRight} · {buttonDetail.buttonId}</span>
+                </div>
+                <div className="bd-row">
+                  <span className="bd-label">{t.currentNoteLabel(direction === "opening" ? t.openingLower : t.closingLower)}</span>
+                  <span className="bd-value">{formatNoteName(buttonDetail.current, notationMode)}</span>
+                </div>
+                {buttonDetail.enharmonic && (
+                  <div className="bd-row">
+                    <span className="bd-label">{t.enharmonicLabel}</span>
+                    <span className="bd-value">{formatNoteName(buttonDetail.enharmonic, notationMode)}</span>
+                  </div>
+                )}
+                <div className="bd-row">
+                  <span className="bd-label">{t.opening}</span>
+                  <span className="bd-value">{formatNoteName(buttonDetail.opening, notationMode)}</span>
+                </div>
+                <div className="bd-row">
+                  <span className="bd-label">{t.closing}</span>
+                  <span className="bd-value">{formatNoteName(buttonDetail.closing, notationMode)}</span>
+                </div>
+              </section>
+            )}
+          </section>
+
+          <section className="chords-section">
+            <div className="section-heading">
+              <div>
+                <span>{t.chordsHeading}</span>
+                <small>{t.chordsSubtitle}</small>
+              </div>
+              <div className="section-rule" />
+            </div>
+
+            <div className="search-bar-row">
+              <form className="search-form" onSubmit={(event) => { event.preventDefault(); searchChord(); }}>
+                <div className="search-field">
+                  <span className="search-icon" aria-hidden="true">⌕</span>
+                  <input
+                    value={chordQuery}
+                    onChange={(event) => setChordQuery(event.target.value)}
+                    placeholder={t.chordPlaceholder}
+                    aria-label={t.chordSearchLabel}
+                  />
+                </div>
+                <button className="primary" type="submit">{t.show}</button>
+              </form>
+            </div>
+
+            {chordError ? (
+              <div className="error">{chordError}</div>
+            ) : chord ? (
+              <div className="study-heading" aria-live="polite">
+                <div className="result-title-row">
+                  <div className="result-title">{formatChordName(chord, notationMode)}</div>
+                  <button
+                    type="button"
+                    className={`favorite-toggle ${isFavorite(chord.displayName) ? "active" : ""}`}
+                    onClick={() => toggleFavorite(chord.displayName)}
+                    aria-label={isFavorite(chord.displayName) ? t.removeFavoriteLabel : t.addFavoriteLabel}
+                    aria-pressed={isFavorite(chord.displayName)}
+                  >
+                    {isFavorite(chord.displayName) ? "★" : "☆"}
+                  </button>
+                </div>
+                <div className="chord-tones" aria-label={t.chordTonesLabel}>
+                  {chord.tones.map((tone) => {
+                    const isOmitted = omittedDegrees.has(tone.degree);
+                    return (
+                      <span
+                        className={`degree-${tone.degree.replaceAll("♭", "flat")} ${isOmitted ? "muted" : ""}`}
+                        key={`${tone.degree}-${tone.scientific}`}
+                      >
+                        <b>{formatToneName(tone, notationMode)}</b>
+                        <small>{tone.degree}</small>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            {chord && activeParrilla && handMode !== "right" && (
+              <ParrillaPositionPanel parrilla={activeParrilla} t={t} />
+            )}
+
+            <div className="favorite-row">
+              {favorites.map((favorite) => (
+                <span
+                  key={favorite}
+                  className={`favorite-chip ${chord?.displayName === parseChord(favorite)?.displayName ? "active" : ""}`}
+                >
+                  <button type="button" className="favorite-chip-main" onClick={() => chooseFavorite(favorite)}>
+                    {favorite}
+                  </button>
+                  <button
+                    type="button"
+                    className="favorite-chip-remove"
+                    aria-label={t.removeFavoriteLabel}
+                    onClick={() => removeFavorite(favorite)}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AppShell() {
   const selection = useMusicSelection();
   const {
@@ -107,24 +326,10 @@ function AppShell() {
     setHandMode,
     showLabels,
     setShowLabels,
-    noteQuery,
-    setNoteQuery,
-    chordQuery,
-    setChordQuery,
     chord,
     note,
-    noteError,
-    chordError,
-    buttonDetail,
     highlights,
     exactMidi,
-    favorites,
-    isFavorite,
-    toggleFavorite,
-    removeFavorite,
-    searchNote,
-    searchChord,
-    chooseFavorite,
     selectButton,
   } = selection;
 
@@ -194,159 +399,13 @@ function AppShell() {
       <UpdateBanner t={t} />
 
       <main className="app-shell">
-      <div className="search-panels">
-      <section className="notes-section">
-        <div className="section-heading">
-          <div>
-            <span>{t.notesHeading}</span>
-            <small>{t.notesSubtitle}</small>
-          </div>
-          <div className="section-rule" />
-        </div>
-
-        <div className="search-bar-row">
-          <form className="search-form" onSubmit={(event) => { event.preventDefault(); searchNote(); }}>
-            <div className="search-field">
-              <span className="search-icon" aria-hidden="true">⌕</span>
-              <input
-                value={noteQuery}
-                onChange={(event) => setNoteQuery(event.target.value)}
-                placeholder={t.notePlaceholder}
-                aria-label={t.noteSearchLabel}
-              />
-            </div>
-            <button className="primary" type="submit">{t.show}</button>
-          </form>
-        </div>
-      </section>
-
-      <section className="chords-section">
-        <div className="section-heading">
-          <div>
-            <span>{t.chordsHeading}</span>
-            <small>{t.chordsSubtitle}</small>
-          </div>
-          <div className="section-rule" />
-        </div>
-
-        <div className="search-bar-row">
-          <form className="search-form" onSubmit={(event) => { event.preventDefault(); searchChord(); }}>
-            <div className="search-field">
-              <span className="search-icon" aria-hidden="true">⌕</span>
-              <input
-                value={chordQuery}
-                onChange={(event) => setChordQuery(event.target.value)}
-                placeholder={t.chordPlaceholder}
-                aria-label={t.chordSearchLabel}
-              />
-            </div>
-            <button className="primary" type="submit">{t.show}</button>
-          </form>
-        </div>
-      </section>
-      </div>
-
-      <div className="results-panel">
-        {noteError ? (
-          <div className="error">{noteError}</div>
-        ) : note ? (
-          <div className="study-heading" aria-live="polite">
-            <div className="result-title">{formatNoteName(note, notationMode)}</div>
-            <div className="note-detail">
-              {note.octave === undefined ? t.allOctaves(resultCount ?? 0) : t.exactNote(resultCount ?? 0)}
-            </div>
-          </div>
-        ) : (
-          <div className="note-detail">{t.noteEmptyState}</div>
-        )}
-
-        {buttonDetail && (
-          <section className="button-detail" aria-live="polite">
-            <div className="bd-row">
-              <span className="bd-label">{t.buttonDetailLabel}</span>
-              <span className="bd-value">{buttonDetail.hand === "left" ? t.handLeft : t.handRight} · {buttonDetail.buttonId}</span>
-            </div>
-            <div className="bd-row">
-              <span className="bd-label">{t.currentNoteLabel(direction === "opening" ? t.openingLower : t.closingLower)}</span>
-              <span className="bd-value">{formatNoteName(buttonDetail.current, notationMode)}</span>
-            </div>
-            {buttonDetail.enharmonic && (
-              <div className="bd-row">
-                <span className="bd-label">{t.enharmonicLabel}</span>
-                <span className="bd-value">{formatNoteName(buttonDetail.enharmonic, notationMode)}</span>
-              </div>
-            )}
-            <div className="bd-row">
-              <span className="bd-label">{t.opening}</span>
-              <span className="bd-value">{formatNoteName(buttonDetail.opening, notationMode)}</span>
-            </div>
-            <div className="bd-row">
-              <span className="bd-label">{t.closing}</span>
-              <span className="bd-value">{formatNoteName(buttonDetail.closing, notationMode)}</span>
-            </div>
-          </section>
-        )}
-
-        {chordError ? (
-          <div className="error">{chordError}</div>
-        ) : chord ? (
-          <div className="study-heading" aria-live="polite">
-            <div className="result-title-row">
-              <div className="result-title">{formatChordName(chord, notationMode)}</div>
-              <button
-                type="button"
-                className={`favorite-toggle ${isFavorite(chord.displayName) ? "active" : ""}`}
-                onClick={() => toggleFavorite(chord.displayName)}
-                aria-label={isFavorite(chord.displayName) ? t.removeFavoriteLabel : t.addFavoriteLabel}
-                aria-pressed={isFavorite(chord.displayName)}
-              >
-                {isFavorite(chord.displayName) ? "★" : "☆"}
-              </button>
-            </div>
-            <div className="chord-tones" aria-label={t.chordTonesLabel}>
-              {chord.tones.map((tone) => {
-                const isOmitted = omittedDegrees.has(tone.degree);
-                return (
-                  <span
-                    className={`degree-${tone.degree.replaceAll("♭", "flat")} ${isOmitted ? "muted" : ""}`}
-                    key={`${tone.degree}-${tone.scientific}`}
-                  >
-                    <b>{formatToneName(tone, notationMode)}</b>
-                    <small>{tone.degree}</small>
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-
-        {chord && activeParrilla && handMode !== "right" && (
-          <ParrillaPositionPanel parrilla={activeParrilla} t={t} />
-        )}
-
-        <div className="favorite-row">
-          {favorites.map((favorite) => (
-            <span
-              key={favorite}
-              className={`favorite-chip ${chord?.displayName === parseChord(favorite)?.displayName ? "active" : ""}`}
-            >
-              <button type="button" className="favorite-chip-main" onClick={() => chooseFavorite(favorite)}>
-                {favorite}
-              </button>
-              <button
-                type="button"
-                className="favorite-chip-remove"
-                aria-label={t.removeFavoriteLabel}
-                onClick={() => removeFavorite(favorite)}
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <Staff chordVoicing={staffChordVoicing} chordGhost={staffChordGhost} />
+      <SearchDrawer
+        t={t}
+        handMode={handMode}
+        activeParrilla={activeParrilla}
+        omittedDegrees={omittedDegrees}
+        resultCount={resultCount}
+      />
 
       <div className="stage-controls">
         <label className="switch-control">
@@ -408,6 +467,8 @@ function AppShell() {
           {t.bellowsPrefix} <strong>{direction === "opening" ? t.openingLower : t.closingLower}</strong>
         </div>
       </section>
+
+      <Staff chordVoicing={staffChordVoicing} chordGhost={staffChordGhost} />
 
       <footer>
         <span>Bandoneon Lab</span>
