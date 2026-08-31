@@ -7,6 +7,6 @@
   "theme_color": "#08080a",
   "lang": "pt-BR",
   "icons": [
-    { "src": "/bandoneon-icon.png", "sizes": "any", "type": "image/png", "purpose": "any" }
+    { "src": "/app-icon.png", "sizes": "any", "type": "image/png", "purpose": "any" }
   ]
 }
