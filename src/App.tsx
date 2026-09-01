@@ -94,34 +94,15 @@ function DirectionRail({
   );
 }
 
-function SearchDrawer({
-  t,
-  handMode,
-  activeParrilla,
-  omittedDegrees,
-  resultCount,
-}: {
-  t: Strings;
-  handMode: HandMode;
-  activeParrilla: ParrillaChord | null;
-  omittedDegrees: Set<string>;
-  resultCount: number | null;
-}) {
+function SearchDrawer({ t }: { t: Strings }) {
   const {
-    notationMode,
-    direction,
     noteQuery,
     setNoteQuery,
     chordQuery,
     setChordQuery,
     chord,
     note,
-    noteError,
-    chordError,
-    buttonDetail,
     favorites,
-    isFavorite,
-    toggleFavorite,
     removeFavorite,
     searchNote,
     searchChord,
@@ -139,6 +120,15 @@ function SearchDrawer({
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [open]);
+
+  // Once a search actually finds something, get out of the way — the
+  // popup's job is picking a note/chord, not displaying it.
+  useEffect(() => {
+    if (chord) setOpen(false);
+  }, [chord]);
+  useEffect(() => {
+    if (note) setOpen(false);
+  }, [note]);
 
   return (
     <div className="search-drawer-root" ref={containerRef}>
@@ -182,46 +172,6 @@ function SearchDrawer({
                 <button className="primary" type="submit">{t.show}</button>
               </form>
             </div>
-
-            {noteError ? (
-              <div className="error">{noteError}</div>
-            ) : note ? (
-              <div className="study-heading" aria-live="polite">
-                <div className="result-title">{formatNoteName(note, notationMode)}</div>
-                <div className="note-detail">
-                  {note.octave === undefined ? t.allOctaves(resultCount ?? 0) : t.exactNote(resultCount ?? 0)}
-                </div>
-              </div>
-            ) : (
-              <div className="note-detail">{t.noteEmptyState}</div>
-            )}
-
-            {buttonDetail && (
-              <section className="button-detail" aria-live="polite">
-                <div className="bd-row">
-                  <span className="bd-label">{t.buttonDetailLabel}</span>
-                  <span className="bd-value">{buttonDetail.hand === "left" ? t.handLeft : t.handRight} · {buttonDetail.buttonId}</span>
-                </div>
-                <div className="bd-row">
-                  <span className="bd-label">{t.currentNoteLabel(direction === "opening" ? t.openingLower : t.closingLower)}</span>
-                  <span className="bd-value">{formatNoteName(buttonDetail.current, notationMode)}</span>
-                </div>
-                {buttonDetail.enharmonic && (
-                  <div className="bd-row">
-                    <span className="bd-label">{t.enharmonicLabel}</span>
-                    <span className="bd-value">{formatNoteName(buttonDetail.enharmonic, notationMode)}</span>
-                  </div>
-                )}
-                <div className="bd-row">
-                  <span className="bd-label">{t.opening}</span>
-                  <span className="bd-value">{formatNoteName(buttonDetail.opening, notationMode)}</span>
-                </div>
-                <div className="bd-row">
-                  <span className="bd-label">{t.closing}</span>
-                  <span className="bd-value">{formatNoteName(buttonDetail.closing, notationMode)}</span>
-                </div>
-              </section>
-            )}
           </section>
 
           <section className="chords-section">
@@ -248,43 +198,6 @@ function SearchDrawer({
               </form>
             </div>
 
-            {chordError ? (
-              <div className="error">{chordError}</div>
-            ) : chord ? (
-              <div className="study-heading" aria-live="polite">
-                <div className="result-title-row">
-                  <div className="result-title">{formatChordName(chord, notationMode)}</div>
-                  <button
-                    type="button"
-                    className={`favorite-toggle ${isFavorite(chord.displayName) ? "active" : ""}`}
-                    onClick={() => toggleFavorite(chord.displayName)}
-                    aria-label={isFavorite(chord.displayName) ? t.removeFavoriteLabel : t.addFavoriteLabel}
-                    aria-pressed={isFavorite(chord.displayName)}
-                  >
-                    {isFavorite(chord.displayName) ? "★" : "☆"}
-                  </button>
-                </div>
-                <div className="chord-tones" aria-label={t.chordTonesLabel}>
-                  {chord.tones.map((tone) => {
-                    const isOmitted = omittedDegrees.has(tone.degree);
-                    return (
-                      <span
-                        className={`degree-${tone.degree.replaceAll("♭", "flat")} ${isOmitted ? "muted" : ""}`}
-                        key={`${tone.degree}-${tone.scientific}`}
-                      >
-                        <b>{formatToneName(tone, notationMode)}</b>
-                        <small>{tone.degree}</small>
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
-
-            {chord && activeParrilla && handMode !== "right" && (
-              <ParrillaPositionPanel parrilla={activeParrilla} t={t} />
-            )}
-
             <div className="favorite-row">
               {favorites.map((favorite) => (
                 <span
@@ -308,6 +221,115 @@ function SearchDrawer({
           </section>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SearchResult({
+  t,
+  handMode,
+  activeParrilla,
+  omittedDegrees,
+  resultCount,
+}: {
+  t: Strings;
+  handMode: HandMode;
+  activeParrilla: ParrillaChord | null;
+  omittedDegrees: Set<string>;
+  resultCount: number | null;
+}) {
+  const {
+    notationMode,
+    direction,
+    chord,
+    note,
+    noteError,
+    chordError,
+    buttonDetail,
+    isFavorite,
+    toggleFavorite,
+  } = useMusicSelection();
+
+  const hasNoteResult = Boolean(note || noteError);
+  const hasChordResult = Boolean(chord || chordError);
+  if (!hasNoteResult && !hasChordResult && !buttonDetail) return null;
+
+  return (
+    <div className="search-result">
+      {noteError ? (
+        <div className="error">{noteError}</div>
+      ) : note ? (
+        <div className="study-heading" aria-live="polite">
+          <div className="result-title">{formatNoteName(note, notationMode)}</div>
+          <div className="note-detail">
+            {note.octave === undefined ? t.allOctaves(resultCount ?? 0) : t.exactNote(resultCount ?? 0)}
+          </div>
+        </div>
+      ) : null}
+
+      {buttonDetail && (
+        <section className="button-detail" aria-live="polite">
+          <div className="bd-row">
+            <span className="bd-label">{t.buttonDetailLabel}</span>
+            <span className="bd-value">{buttonDetail.hand === "left" ? t.handLeft : t.handRight} · {buttonDetail.buttonId}</span>
+          </div>
+          <div className="bd-row">
+            <span className="bd-label">{t.currentNoteLabel(direction === "opening" ? t.openingLower : t.closingLower)}</span>
+            <span className="bd-value">{formatNoteName(buttonDetail.current, notationMode)}</span>
+          </div>
+          {buttonDetail.enharmonic && (
+            <div className="bd-row">
+              <span className="bd-label">{t.enharmonicLabel}</span>
+              <span className="bd-value">{formatNoteName(buttonDetail.enharmonic, notationMode)}</span>
+            </div>
+          )}
+          <div className="bd-row">
+            <span className="bd-label">{t.opening}</span>
+            <span className="bd-value">{formatNoteName(buttonDetail.opening, notationMode)}</span>
+          </div>
+          <div className="bd-row">
+            <span className="bd-label">{t.closing}</span>
+            <span className="bd-value">{formatNoteName(buttonDetail.closing, notationMode)}</span>
+          </div>
+        </section>
+      )}
+
+      {chordError ? (
+        <div className="error">{chordError}</div>
+      ) : chord ? (
+        <div className="study-heading" aria-live="polite">
+          <div className="result-title-row">
+            <div className="result-title">{formatChordName(chord, notationMode)}</div>
+            <button
+              type="button"
+              className={`favorite-toggle ${isFavorite(chord.displayName) ? "active" : ""}`}
+              onClick={() => toggleFavorite(chord.displayName)}
+              aria-label={isFavorite(chord.displayName) ? t.removeFavoriteLabel : t.addFavoriteLabel}
+              aria-pressed={isFavorite(chord.displayName)}
+            >
+              {isFavorite(chord.displayName) ? "★" : "☆"}
+            </button>
+          </div>
+          <div className="chord-tones" aria-label={t.chordTonesLabel}>
+            {chord.tones.map((tone) => {
+              const isOmitted = omittedDegrees.has(tone.degree);
+              return (
+                <span
+                  className={`degree-${tone.degree.replaceAll("♭", "flat")} ${isOmitted ? "muted" : ""}`}
+                  key={`${tone.degree}-${tone.scientific}`}
+                >
+                  <b>{formatToneName(tone, notationMode)}</b>
+                  <small>{tone.degree}</small>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {chord && activeParrilla && handMode !== "right" && (
+        <ParrillaPositionPanel parrilla={activeParrilla} t={t} />
+      )}
     </div>
   );
 }
@@ -399,13 +421,7 @@ function AppShell() {
       <UpdateBanner t={t} />
 
       <main className="app-shell">
-      <SearchDrawer
-        t={t}
-        handMode={handMode}
-        activeParrilla={activeParrilla}
-        omittedDegrees={omittedDegrees}
-        resultCount={resultCount}
-      />
+      <SearchDrawer t={t} />
 
       <div className="stage-controls">
         <label className="switch-control">
@@ -419,6 +435,14 @@ function AppShell() {
           <option value="left">{t.handLeft}</option>
         </select>
       </div>
+
+      <SearchResult
+        t={t}
+        handMode={handMode}
+        activeParrilla={activeParrilla}
+        omittedDegrees={omittedDegrees}
+        resultCount={resultCount}
+      />
 
       <section className={`instrument-stage ${handMode}`}>
         {handMode !== "right" && (

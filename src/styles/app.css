@@ -227,6 +227,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
   color: var(--text-dim);
   font-size: 13px;
 }
+.search-result { margin-bottom: 18px; }
 .stage-controls select {
   min-height: 42px;
   background: var(--surface);
