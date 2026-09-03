@@ -1,6 +1,6 @@
 [package]
 name = "bandoneon-lab"
-version = "0.1.2"
+version = "0.1.3"
 description = "Bandoneon Lab — mapa de estudo do bandoneon de 71 botões"
 authors = ["Pedro Dutra"]
 license = ""
