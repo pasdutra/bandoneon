@@ -208,7 +208,6 @@ function StaffLine({
       <svg
         className="staff-svg"
         viewBox={`0 ${topBound} ${width} ${height}`}
-        style={{ width: `${width}px`, height: `${height}px` }}
         role="img"
         aria-label={clefLabel}
       >

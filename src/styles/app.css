@@ -587,8 +587,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .staff-group { position: relative; z-index: 1; }
 .staff-title { margin: 2px 5px 0; color: #4a4a53; text-transform: uppercase; letter-spacing: .1em; font-size: 15px; font-weight: 800; }
 .staff-title span { font-size: 24px; vertical-align: middle; margin-right: 6px; color: #232328; }
-.staff-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; scrollbar-color: #b8b6ae transparent; scrollbar-width: thin; }
-.staff-svg { width: max(100%, 760px); height: 154px; display: block; }
+.staff-scroll { overflow: hidden; }
+.staff-svg { width: 100%; height: auto; display: block; }
 .staff-line, .ledger { stroke: #2e2e34; stroke-width: 1.25; }
 .clef-symbol { fill: #1f1f24; font-size: 65px; }
 .staff-note { cursor: pointer; outline: none; }
