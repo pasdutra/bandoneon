@@ -118,6 +118,26 @@ interface AccidentalNote {
 }
 
 /**
+ * A single searched/selected note (typed query or keyboard click) that has an
+ * accidental — same "no natural staff line of its own" problem as a chord
+ * tone, see `accidentalNotesOf`. With an exact octave (keyboard click) it's a
+ * single entry; a bare query with no octave (e.g. "Fá♯") lights it up at
+ * every octave the same way a natural note's search does.
+ */
+function singleNoteAccidentalEntries(note: ParsedNote | null): Array<{ displayPitch: string; degree: string; ghost: boolean }> {
+  if (!note || (note.accidental !== 1 && note.accidental !== -1)) return [];
+  if (note.octave !== undefined) {
+    return [{ displayPitch: note.scientific, degree: "", ghost: false }];
+  }
+  const accidentalChar = note.accidental === 1 ? "#" : "b";
+  return Array.from({ length: 9 }, (_, octave) => ({
+    displayPitch: `${note.letter}${accidentalChar}${octave}`,
+    degree: "",
+    ghost: false,
+  }));
+}
+
+/**
  * A chord tone with an accidental (Si♭, Fá♯...) has no natural staff line of
  * its own. Rather than silently drop it, this app draws it as a temporary
  * note positioned between the two natural neighbors it falls between (e.g.
@@ -129,10 +149,12 @@ function accidentalNotesOf(
   noteYs: number[],
   chordVoicing: StaffChordVoicingNote[] | undefined,
   chordGhost: StaffChordGhostNote | undefined,
+  singleNote: Array<{ displayPitch: string; degree: string; ghost: boolean }>,
 ): AccidentalNote[] {
   const entries: Array<{ displayPitch: string; degree: string; ghost: boolean }> = [
     ...(chordVoicing ?? []).map((note) => ({ displayPitch: note.displayPitch, degree: note.degree, ghost: false })),
     ...(chordGhost ? [{ displayPitch: chordGhost.displayPitch, degree: "5", ghost: true }] : []),
+    ...singleNote,
   ];
 
   const xAt = (index: number) => 80 + index * 38;
@@ -181,6 +203,7 @@ function StaffLine({
   exactMidi,
   chordVoicing,
   chordGhost,
+  singleNoteAccidental,
   notationMode,
   onSelectPitch,
 }: {
@@ -191,6 +214,7 @@ function StaffLine({
   exactMidi?: number;
   chordVoicing?: StaffChordVoicingNote[];
   chordGhost?: StaffChordGhostNote;
+  singleNoteAccidental: Array<{ displayPitch: string; degree: string; ghost: boolean }>;
   notationMode: NotationMode;
   onSelectPitch: (pitch: string) => void;
 }) {
@@ -243,7 +267,7 @@ function StaffLine({
             </g>
           );
         })}
-        {accidentalNotesOf(notes, noteYs, chordVoicing, chordGhost).map((note) => (
+        {accidentalNotesOf(notes, noteYs, chordVoicing, chordGhost, singleNoteAccidental).map((note) => (
           <g
             key={note.key}
             className={`staff-note accidental ${note.ghost ? "ghost" : "active"} ${note.ghost ? "" : degreeClass[note.degree] ?? ""}`}
@@ -276,13 +300,19 @@ export function Staff({
   chordVoicing?: StaffChordVoicingNote[];
   chordGhost?: StaffChordGhostNote;
 }) {
-  const { highlights, exactMidi, notationMode, t, searchNote } = useMusicSelection();
+  const { highlights, exactMidi, note, notationMode, t, searchNote } = useMusicSelection();
   // Each clef covers that hand's full compass on the instrument (right: A3–B6,
   // left: C2–A4), so every existing note is visible on at least one staff —
   // they deliberately overlap in the middle register rather than handing off
   // cleanly at middle C.
   const treble = naturalRange(3, "A", 6, "B");
   const bass = naturalRange(2, "C", 4, "A");
+
+  // A single searched/clicked note with an accidental (Fá♯, Si♭...) — shown
+  // on whichever clef(s) its octave actually falls in, same as a natural
+  // note. Never set at the same time as a chord (searching one clears the
+  // other), so this never doubles up with chordVoicing's own accidentals.
+  const singleNoteAccidental = singleNoteAccidentalEntries(note);
 
   function selectStaffPitch(pitch: string) {
     searchNote(pitchToLatin(pitch));
@@ -314,6 +344,7 @@ export function Staff({
             notes={treble}
             highlights={hasChordVoicing ? [] : highlights}
             exactMidi={exactMidi}
+            singleNoteAccidental={singleNoteAccidental}
             notationMode={notationMode}
             onSelectPitch={selectStaffPitch}
           />
@@ -329,6 +360,7 @@ export function Staff({
             exactMidi={exactMidi}
             chordVoicing={chordVoicing}
             chordGhost={chordGhost}
+            singleNoteAccidental={singleNoteAccidental}
             notationMode={notationMode}
             onSelectPitch={selectStaffPitch}
           />

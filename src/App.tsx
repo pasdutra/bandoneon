@@ -3,6 +3,7 @@ import { bandoneonLayout, type BellowsDirection } from "./data/bandoneonLayout";
 import { BandoneonMark } from "./components/BandoneonMark";
 import { Keyboard } from "./components/Keyboard";
 import { Metronome } from "./components/Metronome";
+import { MusicScore } from "./components/MusicScore";
 import { ParrillaPositionPanel } from "./components/ParrillaPositionPanel";
 import { Staff } from "./components/Staff";
 import { UpdateBanner } from "./components/UpdateBanner";
@@ -493,6 +494,8 @@ function AppShell() {
       </section>
 
       <Staff chordVoicing={staffChordVoicing} chordGhost={staffChordGhost} />
+
+      <MusicScore t={t} />
 
       <footer>
         <span>Bandoneon Lab</span>

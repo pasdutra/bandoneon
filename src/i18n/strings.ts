@@ -79,6 +79,12 @@ export interface Strings {
   updateInstall: string;
   updateInstalling: string;
   searchDrawerLabel: string;
+  musicHeading: string;
+  musicSubtitle: string;
+  musicLoadLabel: string;
+  musicLoading: string;
+  musicEmptyState: string;
+  musicLoadError: string;
 }
 
 export const STRINGS: Record<Language, Strings> = {
@@ -161,6 +167,12 @@ export const STRINGS: Record<Language, Strings> = {
     updateInstall: "Atualizar e reiniciar",
     updateInstalling: "Instalando…",
     searchDrawerLabel: "Notas & Acordes",
+    musicHeading: "Música",
+    musicSubtitle: "carregue uma partitura MusicXML e clique numa nota",
+    musicLoadLabel: "Carregar partitura (.musicxml/.xml)",
+    musicLoading: "Carregando…",
+    musicEmptyState: "Nenhuma partitura carregada ainda.",
+    musicLoadError: "Não consegui ler esse arquivo. Verifique se é um MusicXML válido.",
   },
   es: {
     brandSubtitle: "mapa de estudio · 71 botones",
@@ -241,5 +253,11 @@ export const STRINGS: Record<Language, Strings> = {
     updateInstall: "Actualizar y reiniciar",
     updateInstalling: "Instalando…",
     searchDrawerLabel: "Notas y Acordes",
+    musicHeading: "Música",
+    musicSubtitle: "carga una partitura MusicXML y haz clic en una nota",
+    musicLoadLabel: "Cargar partitura (.musicxml/.xml)",
+    musicLoading: "Cargando…",
+    musicEmptyState: "Todavía no hay ninguna partitura cargada.",
+    musicLoadError: "No pude leer ese archivo. Verifica que sea un MusicXML válido.",
   },
 };
