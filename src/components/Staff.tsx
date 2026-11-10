@@ -1,3 +1,4 @@
+import { degreeClass } from "../music/degreeClass";
 import { formatNoteName, type NotationMode } from "../music/notationFormat";
 import { parseNote, pitchToLatin, type ParsedNote } from "../music/notes";
 import { useMusicSelection, type HighlightTone } from "../state/MusicSelectionContext";
@@ -50,16 +51,6 @@ function ledgerYs(y: number) {
   }
   return ys;
 }
-
-const degreeClass: Record<string, string> = {
-  "1": "tone-root",
-  "3": "tone-third",
-  "♭3": "tone-third",
-  "5": "tone-fifth",
-  "♭5": "tone-fifth",
-  "7": "tone-seventh",
-  "♭7": "tone-seventh",
-};
 
 export interface StaffChordVoicingNote {
   displayPitch: string;

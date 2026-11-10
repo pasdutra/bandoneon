@@ -79,6 +79,9 @@ export interface Strings {
   updateInstall: string;
   updateInstalling: string;
   searchDrawerLabel: string;
+  chordRootLabel: string;
+  chordTypeLabel: string;
+  chordMajorLabel: string;
   musicHeading: string;
   musicSubtitle: string;
   musicLoadLabel: string;
@@ -132,7 +135,7 @@ export const STRINGS: Record<Language, Strings> = {
     chordSearchLabel: "Buscar acorde",
     chordTonesLabel: "Notas do acorde",
     noteNotFound: "Não reconheci essa nota. Tente Sol, Si♭, Fá♯4 ou Dó5.",
-    chordNotFound: "Esse acorde não está na biblioteca da apostila. Tente Solm, Dó7, Fá♯m ou Si♭7.",
+    chordNotFound: "Não reconheci esse acorde. Tente Solm, Dó7, Fá♯m7, Si♭maj7, Ré6, Lásus4 ou Mi9.",
     footerTag: (notation) => `Notação ${notation} · layout de referência AA 71`,
     statusComplete: "Completo",
     statusOpen: "Completo · muito aberto",
@@ -167,6 +170,9 @@ export const STRINGS: Record<Language, Strings> = {
     updateInstall: "Atualizar e reiniciar",
     updateInstalling: "Instalando…",
     searchDrawerLabel: "Notas & Acordes",
+    chordRootLabel: "Tom do acorde",
+    chordTypeLabel: "Tipo do acorde",
+    chordMajorLabel: "Maior",
     musicHeading: "Música",
     musicSubtitle: "carregue uma partitura MusicXML e clique numa nota",
     musicLoadLabel: "Carregar partitura (.musicxml/.xml)",
@@ -218,7 +224,7 @@ export const STRINGS: Record<Language, Strings> = {
     chordSearchLabel: "Buscar acorde",
     chordTonesLabel: "Notas del acorde",
     noteNotFound: "No reconocí esa nota. Prueba Sol, Si♭, Fa♯4 o Do5.",
-    chordNotFound: "Ese acorde no está en la biblioteca del método. Prueba Solm, Do7, Fa♯m o Sib7.",
+    chordNotFound: "No reconocí ese acorde. Prueba Solm, Do7, Fa♯m7, Si♭maj7, Re6, Lasus4 o Mi9.",
     footerTag: (notation) => `Notación ${notation} · mapa de referencia AA 71`,
     statusComplete: "Completo",
     statusOpen: "Completo · muy abierto",
@@ -253,6 +259,9 @@ export const STRINGS: Record<Language, Strings> = {
     updateInstall: "Actualizar y reiniciar",
     updateInstalling: "Instalando…",
     searchDrawerLabel: "Notas y Acordes",
+    chordRootLabel: "Tono del acorde",
+    chordTypeLabel: "Tipo de acorde",
+    chordMajorLabel: "Mayor",
     musicHeading: "Música",
     musicSubtitle: "carga una partitura MusicXML y haz clic en una nota",
     musicLoadLabel: "Cargar partitura (.musicxml/.xml)",

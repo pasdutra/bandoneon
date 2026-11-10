@@ -1,20 +1,11 @@
 import type { Strings } from "../i18n/strings";
+import { degreeClass } from "../music/degreeClass";
 import type { ParrillaChord } from "../music/parrillaLibrary";
 
 interface Props {
   parrilla: ParrillaChord;
   t: Strings;
 }
-
-const degreeClass: Record<string, string> = {
-  "1": "tone-root",
-  "3": "tone-third",
-  "♭3": "tone-third",
-  "5": "tone-fifth",
-  "♭5": "tone-fifth",
-  "7": "tone-seventh",
-  "♭7": "tone-seventh",
-};
 
 export function ParrillaPositionPanel({ parrilla, t }: Props) {
   return (

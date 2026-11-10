@@ -5,7 +5,6 @@ import { getButtonDetail, type ButtonDetail } from "../music/buttonDetail";
 import { parseChord, type ParsedChord } from "../music/chords";
 import type { NotationMode } from "../music/notationFormat";
 import { parseNote, pitchToLatin, type ParsedNote } from "../music/notes";
-import { findParrillaChord, mapGenericQualityToParrilla } from "../music/parrillaLibrary";
 
 export type HandMode = "both" | "left" | "right";
 export type { Language, NotationMode };
@@ -131,16 +130,13 @@ export function MusicSelectionProvider({ children }: { children: ReactNode }) {
     setNoteQuery(value);
   }
 
-  // For now the app only shows chords from the documented parrilla library —
-  // the generic engine still computes the theory (verified to match all 37
-  // entries), but a query that doesn't correspond to one of those 37 chords
-  // is rejected rather than offered as a freeform "build any chord" result.
+  // Any chord the generic engine understands is accepted. The 37 documented
+  // parrilla voicings stay a separate source (App looks them up for the
+  // left-hand/opening position); everything else gets a computed suggestion.
   function searchChord(value = chordQuery) {
     setChordError("");
     const parsed = parseChord(value);
-    const parrillaQuality = parsed ? mapGenericQualityToParrilla(parsed.quality) : null;
-    const inLibrary = parsed && parrillaQuality ? findParrillaChord(parsed.tones[0].pitchClass, parrillaQuality) : undefined;
-    if (!parsed || !inLibrary) {
+    if (!parsed) {
       setChordError(t.chordNotFound);
       return;
     }

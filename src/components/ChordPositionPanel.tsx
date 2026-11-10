@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { BellowsDirection } from "../data/bandoneonLayout";
 import type { Strings } from "../i18n/strings";
 import type { ChordPositionCombo, ChordPositionResult } from "../music/chordPositions";
+import { degreeClass } from "../music/degreeClass";
 import { formatToneName, type NotationMode } from "../music/notationFormat";
 
 interface Props {
@@ -13,16 +14,6 @@ interface Props {
   t: Strings;
   onComboChange: (combo: ChordPositionCombo | null) => void;
 }
-
-const degreeClass: Record<string, string> = {
-  "1": "tone-root",
-  "3": "tone-third",
-  "♭3": "tone-third",
-  "5": "tone-fifth",
-  "♭5": "tone-fifth",
-  "7": "tone-seventh",
-  "♭7": "tone-seventh",
-};
 
 function comboAt(result: ChordPositionResult, index: number): ChordPositionCombo | null {
   if (!result.suggested) return null;

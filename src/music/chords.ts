@@ -1,6 +1,20 @@
 import { naturalPitchClass, parseNote, type Letter } from "./notes";
 
-export type ChordQuality = "major" | "minor" | "7" | "m7" | "maj7" | "dim" | "m7b5";
+export type ChordQuality =
+  | "major"
+  | "minor"
+  | "7"
+  | "m7"
+  | "maj7"
+  | "dim"
+  | "m7b5"
+  | "6"
+  | "m6"
+  | "dim7"
+  | "aug"
+  | "sus2"
+  | "sus4"
+  | "9";
 
 export interface ChordTone {
   degree: string;
@@ -63,6 +77,46 @@ const QUALITIES: Record<ChordQuality, Array<{ degree: string; diatonic: number; 
     { degree: "♭5", diatonic: 5, semitones: 6 },
     { degree: "♭7", diatonic: 7, semitones: 10 },
   ],
+  "6": [
+    { degree: "1", diatonic: 1, semitones: 0 },
+    { degree: "3", diatonic: 3, semitones: 4 },
+    { degree: "5", diatonic: 5, semitones: 7 },
+    { degree: "6", diatonic: 6, semitones: 9 },
+  ],
+  m6: [
+    { degree: "1", diatonic: 1, semitones: 0 },
+    { degree: "♭3", diatonic: 3, semitones: 3 },
+    { degree: "5", diatonic: 5, semitones: 7 },
+    { degree: "6", diatonic: 6, semitones: 9 },
+  ],
+  dim7: [
+    { degree: "1", diatonic: 1, semitones: 0 },
+    { degree: "♭3", diatonic: 3, semitones: 3 },
+    { degree: "♭5", diatonic: 5, semitones: 6 },
+    { degree: "♭♭7", diatonic: 7, semitones: 9 },
+  ],
+  aug: [
+    { degree: "1", diatonic: 1, semitones: 0 },
+    { degree: "3", diatonic: 3, semitones: 4 },
+    { degree: "♯5", diatonic: 5, semitones: 8 },
+  ],
+  sus2: [
+    { degree: "1", diatonic: 1, semitones: 0 },
+    { degree: "2", diatonic: 2, semitones: 2 },
+    { degree: "5", diatonic: 5, semitones: 7 },
+  ],
+  sus4: [
+    { degree: "1", diatonic: 1, semitones: 0 },
+    { degree: "4", diatonic: 4, semitones: 5 },
+    { degree: "5", diatonic: 5, semitones: 7 },
+  ],
+  "9": [
+    { degree: "1", diatonic: 1, semitones: 0 },
+    { degree: "3", diatonic: 3, semitones: 4 },
+    { degree: "5", diatonic: 5, semitones: 7 },
+    { degree: "♭7", diatonic: 7, semitones: 10 },
+    { degree: "9", diatonic: 9, semitones: 14 },
+  ],
 };
 
 function accidentalText(delta: number) {
@@ -99,6 +153,13 @@ function parseQuality(raw: string): ChordQuality | null {
   if (q === "m7" || q === "min7" || q === "menor7") return "m7";
   if (q === "maj7" || q === "maior7" || q === "7m") return "maj7";
   if (q === "dim" || q === "°" || q === "diminuto") return "dim";
+  if (q === "6" || q === "maj6" || q === "maior6") return "6";
+  if (q === "m6" || q === "min6" || q === "menor6") return "m6";
+  if (q === "dim7" || q === "°7" || q === "diminuto7") return "dim7";
+  if (q === "aug" || q === "+" || q === "aum" || q === "aumentado" || q === "#5") return "aug";
+  if (q === "sus2") return "sus2";
+  if (q === "sus4" || q === "sus") return "sus4";
+  if (q === "9") return "9";
   if (q === "m7b5" || q === "min7b5" || q === "menor7b5" || q === "m7-5" || q === "ø" || q === "ø7") return "m7b5";
   return null;
 }
@@ -143,6 +204,13 @@ export function parseChord(input: string): ParsedChord | null {
     maj7: "maj7",
     dim: "°",
     m7b5: "m7♭5",
+    "6": "6",
+    m6: "m6",
+    dim7: "°7",
+    aug: "+",
+    sus2: "sus2",
+    sus4: "sus4",
+    "9": "9",
   };
 
   return {

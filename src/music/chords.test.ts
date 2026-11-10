@@ -65,6 +65,38 @@ describe("chord formation — basic qualities", () => {
   });
 });
 
+describe("chord formation — extended qualities", () => {
+  it("Ré6 is Ré, Fá♯, Lá, Si", () => {
+    expect(tonesOf("Ré6")).toEqual(["Ré", "Fá♯", "Lá", "Si"]);
+  });
+
+  it("Lám6 is Lá, Dó, Mi, Fá♯", () => {
+    expect(tonesOf("Lám6")).toEqual(["Lá", "Dó", "Mi", "Fá♯"]);
+  });
+
+  it("Sidim7 is Si, Ré, Fá, Lá♭", () => {
+    expect(tonesOf("Sidim7")).toEqual(["Si", "Ré", "Fá", "Lá♭"]);
+  });
+
+  it("Dóaug is Dó, Mi, Sol♯", () => {
+    expect(tonesOf("Dóaug")).toEqual(["Dó", "Mi", "Sol♯"]);
+  });
+
+  it("Solsus4 is Sol, Dó, Ré and Solsus2 is Sol, Lá, Ré", () => {
+    expect(tonesOf("Solsus4")).toEqual(["Sol", "Dó", "Ré"]);
+    expect(tonesOf("Solsus2")).toEqual(["Sol", "Lá", "Ré"]);
+  });
+
+  it("Mi9 is Mi, Sol♯, Si, Ré, Fá♯", () => {
+    expect(tonesOf("Mi9")).toEqual(["Mi", "Sol♯", "Si", "Ré", "Fá♯"]);
+  });
+
+  it("keeps existing qualities unchanged (m7 is not m6, dim is not dim7)", () => {
+    expect(parseChord("Lám7")?.quality).toBe("m7");
+    expect(parseChord("Sidim")?.quality).toBe("dim");
+  });
+});
+
 describe("chord parser — input flexibility", () => {
   it("accepts Anglo-American root names", () => {
     expect(tonesOf("Gm")).toEqual(tonesOf("Solm"));
@@ -72,7 +104,7 @@ describe("chord parser — input flexibility", () => {
   });
 
   it("rejects unrecognized quality text", () => {
-    expect(parseChord("Sol9")).toBeNull();
+    expect(parseChord("Solxyz")).toBeNull();
   });
 
   it("rejects empty input", () => {

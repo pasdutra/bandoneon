@@ -1,4 +1,5 @@
 import type { BandoneonButton, BellowsDirection, Hand, HandLayout } from "../data/bandoneonLayout";
+import { degreeClass } from "../music/degreeClass";
 import type { NotationMode } from "../music/notationFormat";
 import { parseNote, type ParsedNote } from "../music/notes";
 import type { Strings } from "../i18n/strings";
@@ -22,16 +23,6 @@ interface Props {
   t: Strings;
   onSelectButton: (button: BandoneonButton, hand: Hand) => void;
 }
-
-const degreeClass: Record<string, string> = {
-  "1": "tone-root",
-  "3": "tone-third",
-  "♭3": "tone-third",
-  "5": "tone-fifth",
-  "♭5": "tone-fifth",
-  "7": "tone-seventh",
-  "♭7": "tone-seventh",
-};
 
 function nameWithoutOctave(full: string, octave: number | undefined): string {
   if (octave === undefined) return full;

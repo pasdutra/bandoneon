@@ -3,12 +3,15 @@ import { bandoneonLayout, type BellowsDirection } from "./data/bandoneonLayout";
 import { BandoneonMark } from "./components/BandoneonMark";
 import { Keyboard } from "./components/Keyboard";
 import { Metronome } from "./components/Metronome";
+import { ChordPositionPanel } from "./components/ChordPositionPanel";
 import { MusicScore } from "./components/MusicScore";
 import { ParrillaPositionPanel } from "./components/ParrillaPositionPanel";
 import { Staff } from "./components/Staff";
 import { UpdateBanner } from "./components/UpdateBanner";
 import type { Strings } from "./i18n/strings";
-import { parseChord } from "./music/chords";
+import { findChordPositions, type ChordPositionCombo, type ChordPositionResult } from "./music/chordPositions";
+import { parseChord, type ChordQuality } from "./music/chords";
+import { degreeClass } from "./music/degreeClass";
 import { formatChordName, formatNoteName, formatToneName } from "./music/notationFormat";
 import { noteMatchesQuery, parseNote } from "./music/notes";
 import {
@@ -34,6 +37,25 @@ function parrillaToHighlightMap(parrilla: ParrillaChord): Map<string, HighlightT
 
 function parrillaGhostSet(parrilla: ParrillaChord): Set<string> | undefined {
   return parrilla.derivedGhostFifth ? new Set([parrilla.derivedGhostFifth.buttonId]) : undefined;
+}
+
+function comboToHighlightMap(combo: ChordPositionCombo | null): Map<string, HighlightTone> {
+  const map = new Map<string, HighlightTone>();
+  for (const { tone, button } of combo?.assignments ?? []) {
+    map.set(button.id, { pitchClass: tone.pitchClass, degree: tone.degree });
+  }
+  return map;
+}
+
+interface HandPositions {
+  result: ChordPositionResult;
+  otherDirectionHasComplete: boolean;
+}
+
+/** A combo the panel reported is only trusted while it still belongs to the current result (chord + direction). */
+function validCombo(combo: ChordPositionCombo | null, result: ChordPositionResult | undefined): ChordPositionCombo | null {
+  if (!combo || !result) return null;
+  return combo === result.suggested || result.alternatives.includes(combo) ? combo : null;
 }
 
 function MetronomeLauncher({ t }: { t: ReturnType<typeof useMusicSelection>["t"] }) {
@@ -95,14 +117,33 @@ function DirectionRail({
   );
 }
 
-function SearchDrawer({ t }: { t: Strings }) {
+const CHORD_ROOTS = ["Dó", "Dó♯", "Ré", "Mi♭", "Mi", "Fá", "Fá♯", "Sol", "Lá♭", "Lá", "Si♭", "Si"];
+
+// suffix is what parseChord reads after the root; label is what the button shows.
+const CHORD_TYPES: Array<{ quality: ChordQuality; suffix: string; label: string }> = [
+  { quality: "major", suffix: "", label: "" },
+  { quality: "minor", suffix: "m", label: "m" },
+  { quality: "7", suffix: "7", label: "7" },
+  { quality: "m7", suffix: "m7", label: "m7" },
+  { quality: "maj7", suffix: "maj7", label: "maj7" },
+  { quality: "6", suffix: "6", label: "6" },
+  { quality: "m6", suffix: "m6", label: "m6" },
+  { quality: "9", suffix: "9", label: "9" },
+  { quality: "dim", suffix: "dim", label: "dim" },
+  { quality: "dim7", suffix: "dim7", label: "dim7" },
+  { quality: "m7b5", suffix: "m7b5", label: "m7♭5" },
+  { quality: "aug", suffix: "aug", label: "aug" },
+  { quality: "sus2", suffix: "sus2", label: "sus2" },
+  { quality: "sus4", suffix: "sus4", label: "sus4" },
+];
+
+function SearchPanel({ t }: { t: Strings }) {
   const {
     noteQuery,
     setNoteQuery,
     chordQuery,
     setChordQuery,
     chord,
-    note,
     favorites,
     removeFavorite,
     searchNote,
@@ -110,119 +151,120 @@ function SearchDrawer({ t }: { t: Strings }) {
     chooseFavorite,
   } = useMusicSelection();
 
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Tom + tipo picked by tapping; they follow whatever chord is active so a
+  // typed query or a favorite is reflected in the buttons too.
+  const [pickedRoot, setPickedRoot] = useState<string | null>(null);
+  const [pickedQuality, setPickedQuality] = useState<ChordQuality>("major");
+  const activeRoot = chord ? chord.rootLatin : pickedRoot;
+  const activeQuality = chord ? chord.quality : pickedQuality;
 
-  useEffect(() => {
-    if (!open) return;
-    function handlePointerDown(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [open]);
-
-  // Once a search actually finds something, get out of the way — the
-  // popup's job is picking a note/chord, not displaying it.
-  useEffect(() => {
-    if (chord) setOpen(false);
-  }, [chord]);
-  useEffect(() => {
-    if (note) setOpen(false);
-  }, [note]);
+  function pickChord(root: string, quality: ChordQuality) {
+    const suffix = CHORD_TYPES.find((type) => type.quality === quality)?.suffix ?? "";
+    setPickedRoot(root);
+    setPickedQuality(quality);
+    searchChord(`${root}${suffix}`);
+    // On a narrow screen the keyboards sit below this panel: bring them into
+    // view so the chord that just lit up is actually seen.
+    window.setTimeout(() => {
+      const stage = document.querySelector(".instrument-stage");
+      if (stage && stage.getBoundingClientRect().top > window.innerHeight * 0.6) {
+        stage.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 50);
+  }
 
   return (
-    <div className="search-drawer-root" ref={containerRef}>
-      <button
-        type="button"
-        className="search-drawer-toggle"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-      >
-        <span aria-hidden="true">⌕</span>
-        {t.searchDrawerLabel}
-      </button>
-
-      <div className={`search-drawer ${open ? "open" : ""}`}>
-        <div className="search-drawer-head">
-          <span>{t.searchDrawerLabel}</span>
-          <button type="button" className="search-drawer-close" aria-label={t.closeLabel} onClick={() => setOpen(false)}>×</button>
+    <section className="search-panel" aria-label={t.searchDrawerLabel}>
+      <div className="search-panel-col">
+        <div className="panel-title">
+          <span>{t.notesHeading}</span>
+          <small>{t.notesSubtitle}</small>
         </div>
-
-        <div className="search-drawer-body">
-          <section className="notes-section">
-            <div className="section-heading">
-              <div>
-                <span>{t.notesHeading}</span>
-                <small>{t.notesSubtitle}</small>
-              </div>
-              <div className="section-rule" />
-            </div>
-
-            <div className="search-bar-row">
-              <form className="search-form" onSubmit={(event) => { event.preventDefault(); searchNote(); }}>
-                <div className="search-field">
-                  <span className="search-icon" aria-hidden="true">⌕</span>
-                  <input
-                    value={noteQuery}
-                    onChange={(event) => setNoteQuery(event.target.value)}
-                    placeholder={t.notePlaceholder}
-                    aria-label={t.noteSearchLabel}
-                  />
-                </div>
-                <button className="primary" type="submit">{t.show}</button>
-              </form>
-            </div>
-          </section>
-
-          <section className="chords-section">
-            <div className="section-heading">
-              <div>
-                <span>{t.chordsHeading}</span>
-                <small>{t.chordsSubtitle}</small>
-              </div>
-              <div className="section-rule" />
-            </div>
-
-            <div className="search-bar-row">
-              <form className="search-form" onSubmit={(event) => { event.preventDefault(); searchChord(); }}>
-                <div className="search-field">
-                  <span className="search-icon" aria-hidden="true">⌕</span>
-                  <input
-                    value={chordQuery}
-                    onChange={(event) => setChordQuery(event.target.value)}
-                    placeholder={t.chordPlaceholder}
-                    aria-label={t.chordSearchLabel}
-                  />
-                </div>
-                <button className="primary" type="submit">{t.show}</button>
-              </form>
-            </div>
-
-            <div className="favorite-row">
-              {favorites.map((favorite) => (
-                <span
-                  key={favorite}
-                  className={`favorite-chip ${chord?.displayName === parseChord(favorite)?.displayName ? "active" : ""}`}
-                >
-                  <button type="button" className="favorite-chip-main" onClick={() => chooseFavorite(favorite)}>
-                    {favorite}
-                  </button>
-                  <button
-                    type="button"
-                    className="favorite-chip-remove"
-                    aria-label={t.removeFavoriteLabel}
-                    onClick={() => removeFavorite(favorite)}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          </section>
-        </div>
+        <form className="search-form" onSubmit={(event) => { event.preventDefault(); searchNote(); }}>
+          <div className="search-field">
+            <span className="search-icon" aria-hidden="true">⌕</span>
+            <input
+              value={noteQuery}
+              onChange={(event) => setNoteQuery(event.target.value)}
+              placeholder={t.notePlaceholder}
+              aria-label={t.noteSearchLabel}
+            />
+          </div>
+          <button className="primary" type="submit">{t.show}</button>
+        </form>
       </div>
-    </div>
+
+      <div className="search-panel-col">
+        <div className="panel-title">
+          <span>{t.chordsHeading}</span>
+          <small>{t.chordsSubtitle}</small>
+        </div>
+        <form className="search-form" onSubmit={(event) => { event.preventDefault(); searchChord(); }}>
+          <div className="search-field">
+            <span className="search-icon" aria-hidden="true">⌕</span>
+            <input
+              value={chordQuery}
+              onChange={(event) => setChordQuery(event.target.value)}
+              placeholder={t.chordPlaceholder}
+              aria-label={t.chordSearchLabel}
+            />
+          </div>
+          <button className="primary" type="submit">{t.show}</button>
+        </form>
+
+        <div className="chord-builder">
+          <div className="chip-group" role="group" aria-label={t.chordRootLabel}>
+            {CHORD_ROOTS.map((root) => (
+              <button
+                key={root}
+                type="button"
+                className={`chip-btn ${activeRoot === root ? "active" : ""}`}
+                aria-pressed={activeRoot === root}
+                onClick={() => pickChord(root, activeQuality)}
+              >
+                {root}
+              </button>
+            ))}
+          </div>
+          <div className="chip-group" role="group" aria-label={t.chordTypeLabel}>
+            {CHORD_TYPES.map((type) => (
+              <button
+                key={type.quality}
+                type="button"
+                className={`chip-btn ${activeQuality === type.quality && activeRoot ? "active" : ""}`}
+                aria-pressed={activeQuality === type.quality && Boolean(activeRoot)}
+                onClick={() => pickChord(activeRoot ?? CHORD_ROOTS[0], type.quality)}
+              >
+                {type.label || t.chordMajorLabel}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {favorites.length > 0 && (
+          <div className="favorite-row">
+            {favorites.map((favorite) => (
+              <span
+                key={favorite}
+                className={`favorite-chip ${chord?.displayName === parseChord(favorite)?.displayName ? "active" : ""}`}
+              >
+                <button type="button" className="favorite-chip-main" onClick={() => chooseFavorite(favorite)}>
+                  {favorite}
+                </button>
+                <button
+                  type="button"
+                  className="favorite-chip-remove"
+                  aria-label={t.removeFavoriteLabel}
+                  onClick={() => removeFavorite(favorite)}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -232,12 +274,18 @@ function SearchResult({
   activeParrilla,
   omittedDegrees,
   resultCount,
+  positions,
+  onLeftCombo,
+  onRightCombo,
 }: {
   t: Strings;
   handMode: HandMode;
   activeParrilla: ParrillaChord | null;
   omittedDegrees: Set<string>;
   resultCount: number | null;
+  positions: { left: HandPositions; right: HandPositions } | null;
+  onLeftCombo: (combo: ChordPositionCombo | null) => void;
+  onRightCombo: (combo: ChordPositionCombo | null) => void;
 }) {
   const {
     notationMode,
@@ -316,7 +364,7 @@ function SearchResult({
               const isOmitted = omittedDegrees.has(tone.degree);
               return (
                 <span
-                  className={`degree-${tone.degree.replaceAll("♭", "flat")} ${isOmitted ? "muted" : ""}`}
+                  className={`${degreeClass[tone.degree] ?? ""} ${isOmitted ? "muted" : ""}`}
                   key={`${tone.degree}-${tone.scientific}`}
                 >
                   <b>{formatToneName(tone, notationMode)}</b>
@@ -328,8 +376,34 @@ function SearchResult({
         </div>
       ) : null}
 
-      {chord && activeParrilla && handMode !== "right" && (
-        <ParrillaPositionPanel parrilla={activeParrilla} t={t} />
+      {chord && positions && (
+        <div className="chord-positions">
+          {handMode !== "right" &&
+            (activeParrilla ? (
+              <ParrillaPositionPanel parrilla={activeParrilla} t={t} />
+            ) : (
+              <ChordPositionPanel
+                handLabel={t.handLeft}
+                result={positions.left.result}
+                direction={direction}
+                otherDirectionHasComplete={positions.left.otherDirectionHasComplete}
+                notationMode={notationMode}
+                t={t}
+                onComboChange={onLeftCombo}
+              />
+            ))}
+          {handMode !== "left" && (
+            <ChordPositionPanel
+              handLabel={t.handRight}
+              result={positions.right.result}
+              direction={direction}
+              otherDirectionHasComplete={positions.right.otherDirectionHasComplete}
+              notationMode={notationMode}
+              t={t}
+              onComboChange={onRightCombo}
+            />
+          )}
+        </div>
       )}
     </div>
   );
@@ -379,17 +453,44 @@ function AppShell() {
 
   const omittedDegrees = useMemo(() => omittedDegreesOf(matchedParrilla), [matchedParrilla]);
 
-  // The staff only ever paints the exact documented notes of a chord (never
-  // "every octave of that pitch class") — same specific data as the keyboard.
+  // Computed (non-apostila) positions for every visible hand and direction —
+  // a proximity suggestion from the generic engine, never presented as the
+  // book's fingering. The documented parrilla still wins on the left hand
+  // whenever it physically applies (left hand + opening).
+  const positions = useMemo(() => {
+    if (!chord) return null;
+    const other = direction === "opening" ? "closing" : "opening";
+    const forHand = (layout: typeof bandoneonLayout.leftHand): HandPositions => ({
+      result: findChordPositions(chord, layout, direction),
+      otherDirectionHasComplete: findChordPositions(chord, layout, other).status !== "incomplete",
+    });
+    return { left: forHand(bandoneonLayout.leftHand), right: forHand(bandoneonLayout.rightHand) };
+  }, [chord, direction]);
+
+  const [leftComboRaw, setLeftCombo] = useState<ChordPositionCombo | null>(null);
+  const [rightComboRaw, setRightCombo] = useState<ChordPositionCombo | null>(null);
+  const leftCombo = validCombo(leftComboRaw, positions?.left.result);
+  const rightCombo = validCombo(rightComboRaw, positions?.right.result);
+
+  // The staff only ever paints the exact notes the left keyboard shows (never
+  // "every octave of that pitch class"): the documented voicing when it
+  // applies, otherwise the computed combination currently chosen, and only
+  // when the left hand is hidden does it fall back to the documented theory.
+  const computedStaffVoicing = useMemo(() => {
+    if (activeParrilla || handMode === "right" || !leftCombo) return undefined;
+    return leftCombo.assignments.map(({ tone, button }) => ({ displayPitch: button[direction], degree: tone.degree }));
+  }, [activeParrilla, handMode, leftCombo, direction]);
+
   const staffChordVoicing = useMemo(() => {
+    if (computedStaffVoicing) return computedStaffVoicing;
     if (!matchedParrilla) return undefined;
     return matchedParrilla.sourceVoicing.map((note) => ({ displayPitch: note.displayPitch, degree: note.degree }));
-  }, [matchedParrilla]);
+  }, [computedStaffVoicing, matchedParrilla]);
 
   const staffChordGhost = useMemo(() => {
-    if (!matchedParrilla?.derivedGhostFifth) return undefined;
+    if (computedStaffVoicing || !matchedParrilla?.derivedGhostFifth) return undefined;
     return { displayPitch: matchedParrilla.derivedGhostFifth.displayPitch };
-  }, [matchedParrilla]);
+  }, [computedStaffVoicing, matchedParrilla]);
 
   return (
     <>
@@ -422,7 +523,7 @@ function AppShell() {
       <UpdateBanner t={t} />
 
       <main className="app-shell">
-      <SearchDrawer t={t} />
+      <SearchPanel t={t} />
 
       <div className="stage-controls">
         <label className="switch-control">
@@ -437,14 +538,6 @@ function AppShell() {
         </select>
       </div>
 
-      <SearchResult
-        t={t}
-        handMode={handMode}
-        activeParrilla={activeParrilla}
-        omittedDegrees={omittedDegrees}
-        resultCount={resultCount}
-      />
-
       <section className={`instrument-stage ${handMode}`}>
         {handMode !== "right" && (
           <Keyboard
@@ -453,7 +546,7 @@ function AppShell() {
             layout={bandoneonLayout.leftHand}
             direction={direction}
             highlights={chord && !activeParrilla ? [] : highlights}
-            highlightButtonIds={activeParrilla ? parrillaToHighlightMap(activeParrilla) : undefined}
+            highlightButtonIds={activeParrilla ? parrillaToHighlightMap(activeParrilla) : chord ? comboToHighlightMap(leftCombo) : undefined}
             ghostButtonIds={activeParrilla ? parrillaGhostSet(activeParrilla) : undefined}
             exactMidi={exactMidi}
             showLabels={showLabels}
@@ -472,6 +565,7 @@ function AppShell() {
             layout={bandoneonLayout.rightHand}
             direction={direction}
             highlights={chord ? [] : highlights}
+            highlightButtonIds={chord ? comboToHighlightMap(rightCombo) : undefined}
             exactMidi={exactMidi}
             showLabels={showLabels}
             notationMode={notationMode}
@@ -492,6 +586,17 @@ function AppShell() {
           {t.bellowsPrefix} <strong>{direction === "opening" ? t.openingLower : t.closingLower}</strong>
         </div>
       </section>
+
+      <SearchResult
+        t={t}
+        handMode={handMode}
+        activeParrilla={activeParrilla}
+        omittedDegrees={omittedDegrees}
+        resultCount={resultCount}
+        positions={positions}
+        onLeftCombo={setLeftCombo}
+        onRightCombo={setRightCombo}
+      />
 
       <Staff chordVoicing={staffChordVoicing} chordGhost={staffChordGhost} />
 
