@@ -1,0 +1,8 @@
+{
+  "appId": "com.bandoneonlab.app",
+  "appName": "Bandoneon Lab",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#f5f3ee"
+  }
+}

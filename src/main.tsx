@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Capacitor } from "@capacitor/core";
 import { isTauri } from "@tauri-apps/api/core";
 import App from "./App";
 import "@fontsource-variable/inter";
@@ -19,9 +20,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 // can serve an old index.html pointing at JS/CSS filenames the new build no
 // longer has, leaving the window blank. Only register it for the real
 // browser-hosted PWA, and actively unregister/clear it under Tauri so an
-// install that already picked one up (e.g. from 0.1.2) heals itself.
+// install that already picked one up (e.g. from 0.1.2) heals itself. The
+// Android app (Capacitor) ships its files in the package too, so same rule.
 if ("serviceWorker" in navigator) {
-  if (isTauri()) {
+  if (isTauri() || Capacitor.isNativePlatform()) {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (const registration of registrations) registration.unregister();
     });
