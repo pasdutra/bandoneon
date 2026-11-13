@@ -469,6 +469,12 @@ function AppShell() {
     return leftCombo.assignments.map(({ tone, button }) => ({ displayPitch: button[direction], degree: tone.degree }));
   }, [activeParrilla, handMode, leftCombo, direction]);
 
+  // The treble clef shows the right-hand position currently lit on the keyboard.
+  const trebleChordVoicing = useMemo(() => {
+    if (!chord || handMode === "left" || !rightCombo) return undefined;
+    return rightCombo.assignments.map(({ tone, button }) => ({ displayPitch: button[direction], degree: tone.degree }));
+  }, [chord, handMode, rightCombo, direction]);
+
   const pieceStaffVoicing = useMemo(() => {
     if (!pieceLeft || handMode === "right") return undefined;
     return pieceLeft.notes.map((note) => ({ displayPitch: note.pitch, degree: note.degree }));
@@ -630,7 +636,7 @@ function AppShell() {
         onRightCombo={setRightCombo}
       />
 
-      <Staff chordVoicing={staffChordVoicing} chordGhost={staffChordGhost} />
+      <Staff chordVoicing={staffChordVoicing} chordGhost={staffChordGhost} trebleChordVoicing={trebleChordVoicing} />
 
       <MusicScore t={t} />
 

@@ -449,7 +449,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .score-sheet { overflow: hidden; padding: 10px 14px 8px; }
 /* Wide screens: treble and bass side by side, so the whole staff fits in about half the height. */
 @media (min-width: 1200px) {
-  .score-sheet { display: grid; grid-template-columns: 23fr 20fr; gap: 0 20px; align-items: end; }
+  .score-sheet { display: grid; grid-template-columns: 20fr 23fr; gap: 0 20px; align-items: end; }
   .score-sheet .score-divider { display: none; }
 }
 .score-watermark { display: none; }

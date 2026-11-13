@@ -287,9 +287,13 @@ function StaffLine({
 export function Staff({
   chordVoicing,
   chordGhost,
+  trebleChordVoicing,
 }: {
+  /** Left-hand notes of the active chord, drawn on the bass clef. */
   chordVoicing?: StaffChordVoicingNote[];
   chordGhost?: StaffChordGhostNote;
+  /** Right-hand notes of the active chord, drawn on the treble clef. */
+  trebleChordVoicing?: StaffChordVoicingNote[];
 }) {
   const { highlights, exactMidi, note, notationMode, t, searchNote } = useMusicSelection();
   // Each clef covers that hand's full compass on the instrument (right: A3–B6,
@@ -309,11 +313,11 @@ export function Staff({
     searchNote(pitchToLatin(pitch));
   }
 
-  // Every documented chord voicing is a left-hand, bellows-opening position
-  // that reads on the bass clef — coloring it on the treble clef too would
-  // just be the pitch class repeating in a register that has nothing to do
-  // with the chord, so a chord only ever paints the bass ("clave de fá") staff.
-  const hasChordVoicing = Boolean(chordVoicing);
+  // A chord paints each clef with the exact notes its hand is showing on the
+  // keyboard (left hand → bass clef, right hand → treble clef), never "every
+  // octave of that pitch class". While a chord is active the treble clef shows
+  // only the right-hand notes it was given.
+  const hasChordVoicing = Boolean(chordVoicing || trebleChordVoicing);
 
   return (
     <section className="staff-panel">
@@ -328,20 +332,6 @@ export function Staff({
       <div className="score-sheet">
         <div className="score-watermark">{t.staffWatermark}</div>
         <div className="staff-group">
-          <div className="staff-title"><span>𝄞</span> {t.trebleClef}</div>
-          <StaffLine
-            clef="treble"
-            clefLabel={t.trebleClef}
-            notes={treble}
-            highlights={hasChordVoicing ? [] : highlights}
-            exactMidi={exactMidi}
-            singleNoteAccidental={singleNoteAccidental}
-            notationMode={notationMode}
-            onSelectPitch={selectStaffPitch}
-          />
-        </div>
-        <div className="score-divider" />
-        <div className="staff-group">
           <div className="staff-title"><span>𝄢</span> {t.bassClef}</div>
           <StaffLine
             clef="bass"
@@ -351,6 +341,21 @@ export function Staff({
             exactMidi={exactMidi}
             chordVoicing={chordVoicing}
             chordGhost={chordGhost}
+            singleNoteAccidental={singleNoteAccidental}
+            notationMode={notationMode}
+            onSelectPitch={selectStaffPitch}
+          />
+        </div>
+        <div className="score-divider" />
+        <div className="staff-group">
+          <div className="staff-title"><span>𝄞</span> {t.trebleClef}</div>
+          <StaffLine
+            clef="treble"
+            clefLabel={t.trebleClef}
+            notes={treble}
+            highlights={hasChordVoicing ? [] : highlights}
+            exactMidi={exactMidi}
+            chordVoicing={trebleChordVoicing}
             singleNoteAccidental={singleNoteAccidental}
             notationMode={notationMode}
             onSelectPitch={selectStaffPitch}
