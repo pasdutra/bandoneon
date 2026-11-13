@@ -76,12 +76,12 @@ export function Keyboard({
         >
           <defs>
             <radialGradient id={gradientId} cx="36%" cy="28%" r="72%">
-              <stop offset="0%" stopColor="#454550" />
-              <stop offset="65%" stopColor="#302f38" />
-              <stop offset="100%" stopColor="#222129" />
+              <stop offset="0%" stopColor="#fffdf6" />
+              <stop offset="60%" stopColor="#f1ebdc" />
+              <stop offset="100%" stopColor="#d9d1bd" />
             </radialGradient>
             <filter id={shadowId} x="-30%" y="-30%" width="160%" height="170%">
-              <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#000" floodOpacity="0.5" />
+              <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#000" floodOpacity="0.28" />
             </filter>
           </defs>
           {layout.buttons.map((button) => {
@@ -114,7 +114,7 @@ export function Keyboard({
                   </text>
                 )}
                 {(showLabels || active || isGhost) && label.octave && (
-                  <text className="key-octave" x={button.x + 25} y={button.y - 18} textAnchor="middle">
+                  <text className="key-octave" x={button.x + 37} y={button.y - 25} textAnchor="middle">
                     {label.octave}
                   </text>
                 )}

@@ -79,6 +79,17 @@ export interface Strings {
   updateInstall: string;
   updateInstalling: string;
   searchDrawerLabel: string;
+  pieceVoicingLabel: (piece: string, page: number) => string;
+  handsShort: string;
+  handLeftShort: string;
+  handRightShort: string;
+  bothShort: string;
+  noteNamesToggle: string;
+  selectionChord: string;
+  selectionNote: string;
+  rootShort: string;
+  typeShort: string;
+  favoritesShort: string;
   chordRootLabel: string;
   chordTypeLabel: string;
   chordMajorLabel: string;
@@ -170,6 +181,17 @@ export const STRINGS: Record<Language, Strings> = {
     updateInstall: "Atualizar e reiniciar",
     updateInstalling: "Instalando…",
     searchDrawerLabel: "Notas & Acordes",
+    pieceVoicingLabel: (piece, page) => `${piece} · pág. ${page}`,
+    handsShort: "Mãos",
+    handLeftShort: "Esquerda",
+    handRightShort: "Direita",
+    bothShort: "Duas",
+    noteNamesToggle: "Nomes das notas",
+    selectionChord: "Acorde",
+    selectionNote: "Nota",
+    rootShort: "Tom",
+    typeShort: "Tipo",
+    favoritesShort: "Favoritos",
     chordRootLabel: "Tom do acorde",
     chordTypeLabel: "Tipo do acorde",
     chordMajorLabel: "Maior",
@@ -259,6 +281,17 @@ export const STRINGS: Record<Language, Strings> = {
     updateInstall: "Actualizar y reiniciar",
     updateInstalling: "Instalando…",
     searchDrawerLabel: "Notas y Acordes",
+    pieceVoicingLabel: (piece, page) => `${piece} · pág. ${page}`,
+    handsShort: "Manos",
+    handLeftShort: "Izquierda",
+    handRightShort: "Derecha",
+    bothShort: "Dos",
+    noteNamesToggle: "Nombres de las notas",
+    selectionChord: "Acorde",
+    selectionNote: "Nota",
+    rootShort: "Tono",
+    typeShort: "Tipo",
+    favoritesShort: "Favoritos",
     chordRootLabel: "Tono del acorde",
     chordTypeLabel: "Tipo de acorde",
     chordMajorLabel: "Mayor",
