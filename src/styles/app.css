@@ -303,7 +303,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .favorite-toggle:hover { color: var(--accent); background: var(--surface-2); }
 .favorite-toggle:active { transform: scale(.9); }
 .favorite-toggle.active { color: var(--accent); }
-.selection-empty { margin: 0 0 6px; font-family: var(--serif); font-style: italic; font-size: clamp(24px, 2.4vw, 32px); line-height: 1.1; color: var(--text-faint); }
 .selection-detail { display: flex; flex-direction: column; gap: 8px; padding-bottom: 6px; }
 .note-detail { color: var(--text-dim); font-size: 14px; }
 .selection-bar .error { flex-basis: 100%; }

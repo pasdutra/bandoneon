@@ -382,8 +382,6 @@ function SelectionBar({ t, omittedDegrees, resultCount }: { t: Strings; omittedD
             )}
           </div>
         </>
-      ) : !error ? (
-        <p className="selection-empty">{t.noteEmptyState}</p>
       ) : null}
       {error && <div className="error">{error}</div>}
     </section>
