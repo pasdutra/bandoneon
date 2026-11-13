@@ -282,9 +282,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
   overflow: hidden;
   scroll-margin-top: 72px;
 }
-.console-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px 32px; padding: 20px 22px 16px; }
+.console-head { display: flex; align-items: flex-end; justify-content: flex-start; flex-wrap: wrap; gap: 12px 32px; padding: 14px 18px 12px; }
 
-.selection-bar { flex: 1 1 320px; display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px 28px; min-height: 86px; }
+.selection-bar { flex: 1 1 320px; display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px 28px; }
+.selection-bar.is-empty { display: none; }
+.selection-bar:not(.is-empty) + .toolbar { margin-left: auto; }
 .selection-main { display: flex; flex-direction: column; gap: 4px; }
 .selection-kicker { font-size: 11px; font-weight: 650; letter-spacing: .1em; text-transform: uppercase; color: var(--text-faint); }
 .result-title-row { display: flex; align-items: center; gap: 10px; }
@@ -322,7 +324,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .bd-label { font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--text-faint); }
 .bd-value { margin: 0; font-size: 14px; font-weight: 600; }
 
-.toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 22px; padding-bottom: 6px; }
+.toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 22px; }
 .toolbar-field { display: inline-flex; align-items: center; gap: 10px; }
 .console .seg.active { background: var(--ink); color: var(--on-ink); box-shadow: none; }
 .console .seg.active .seg-icon { color: var(--on-ink); }
@@ -429,8 +431,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 
 /* ---------- Sections: staff and score ---------- */
 
-.staff-panel, .music-panel { margin-top: 12px; }
-.section-heading { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.staff-panel, .music-panel { margin-top: 4px; }
+.section-heading { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
 .section-heading > div:first-child { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; flex: 0 1 auto; }
 .section-heading span { font-family: var(--serif); font-size: 30px; font-weight: 400; line-height: 1; }
 .section-heading small { color: var(--text-faint); font-size: 12px; }
@@ -444,7 +446,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
   box-shadow: var(--shadow-1);
   color: #1a1a1f;
 }
-.score-sheet { overflow: hidden; padding: 16px 18px 12px; }
+.score-sheet { overflow: hidden; padding: 10px 14px 8px; }
+/* Wide screens: treble and bass side by side, so the whole staff fits in about half the height. */
+@media (min-width: 1200px) {
+  .score-sheet { display: grid; grid-template-columns: 23fr 20fr; gap: 0 20px; align-items: end; }
+  .score-sheet .score-divider { display: none; }
+}
 .score-watermark { display: none; }
 .staff-group { position: relative; }
 .staff-title { margin: 2px 4px 0; color: var(--text-dim); font-size: 13px; font-weight: 700; }
@@ -455,7 +462,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .clef-symbol { fill: #1f1f24; font-size: 65px; }
 .staff-note { cursor: pointer; outline: none; }
 .staff-note ellipse { fill: #26262c; transition: transform .15s var(--ease), fill .15s var(--ease); transform-box: fill-box; transform-origin: center; }
-.staff-note .staff-note-label { fill: #57575f; font-size: 10px; font-weight: 650; }
+.staff-note .staff-note-label { fill: #57575f; font-size: 13px; font-weight: 650; }
 .staff-note:hover ellipse, .staff-note:focus ellipse { fill: var(--accent-strong); transform: scale(1.2); }
 .staff-note.active ellipse { fill: var(--root); stroke: #16110a; stroke-width: 1.2; transform: scale(1.25); }
 .staff-note.active .staff-note-label { fill: var(--accent-strong); font-weight: 900; }
@@ -468,7 +475,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .staff-note.ghost ellipse { fill: none; stroke: rgba(26, 26, 31, .45); stroke-width: 1.2; stroke-dasharray: 2 2.5; }
 .staff-note.ghost .staff-note-label { fill: rgba(26, 26, 31, .5); font-weight: 700; }
 .score-divider { height: 1px; margin: -4px 10px 7px; background: var(--border); }
-.score-footnote { text-align: right; color: var(--text-faint); font-size: 11px; padding: 2px 6px 0; }
+.score-footnote { display: none; }
 
 .music-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .music-file-btn {

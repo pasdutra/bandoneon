@@ -314,7 +314,7 @@ function SelectionBar({ t, omittedDegrees, resultCount }: { t: Strings; omittedD
   const error = chordError || noteError;
 
   return (
-    <section className="selection-bar" aria-live="polite">
+    <section className={`selection-bar ${chord || note || error ? "" : "is-empty"}`} aria-live="polite">
       {chord ? (
         <>
           <div className="selection-main">
