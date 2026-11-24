@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { BandoneonButton, BellowsDirection, Hand, HandLayout } from "../data/bandoneonLayout";
 import { degreeClass } from "../music/degreeClass";
 import type { NotationMode } from "../music/notationFormat";
@@ -22,6 +23,8 @@ interface Props {
   notationMode: NotationMode;
   t: Strings;
   onSelectButton: (button: BandoneonButton, hand: Hand) => void;
+  /** Rendered right under the keyboard face (this hand's staff). */
+  children?: ReactNode;
 }
 
 function nameWithoutOctave(full: string, octave: number | undefined): string {
@@ -51,6 +54,7 @@ export function Keyboard({
   notationMode,
   t,
   onSelectButton,
+  children,
 }: Props) {
   const gradientId = `key-grad-${hand}`;
   const shadowId = `key-shadow-${hand}`;
@@ -59,13 +63,7 @@ export function Keyboard({
   return (
     <section className="keyboard-panel">
       <div className="keyboard-panel-header">
-        <div>
-          <div className="panel-label">{title}</div>
-          <div className="panel-meta">{t.buttonsCount(layout.buttons.length)}</div>
-        </div>
-        <div className="panel-direction">
-          {direction === "opening" ? `← ${t.opening.toUpperCase()}` : `${t.closing.toUpperCase()} →`}
-        </div>
+        <div className="panel-label">{title}</div>
       </div>
       <div className="keyboard-face">
         <svg
@@ -133,6 +131,7 @@ export function Keyboard({
           })}
         </svg>
       </div>
+      {children}
     </section>
   );
 }

@@ -149,7 +149,6 @@ export function MusicScore({ t }: { t: Strings }) {
       <div className="section-heading">
         <div>
           <span>{t.musicHeading}</span>
-          <small>{t.musicSubtitle}</small>
         </div>
         <div className="section-rule" />
       </div>
@@ -164,8 +163,8 @@ export function MusicScore({ t }: { t: Strings }) {
 
       {error && <div className="error">{error}</div>}
 
-      <div className="music-sheet">
-        {!loaded && <div className="music-empty-state">{t.musicEmptyState}</div>}
+      {/* Kept mounted (never display:none) so OSMD always measures a real width when it renders. */}
+      <div className={`music-sheet ${loaded ? "" : "empty"}`}>
         <div ref={containerRef} className="music-osmd-container" onClick={handleScoreClick} />
       </div>
     </section>

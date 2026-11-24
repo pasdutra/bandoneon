@@ -284,85 +284,48 @@ function StaffLine({
   );
 }
 
-export function Staff({
+// Each clef covers its hand's full compass on the instrument (left: C2–A4 on
+// the bass clef, right: A3–B6 on the treble clef). They deliberately overlap
+// in the middle register rather than handing off cleanly at middle C.
+const CLEF_RANGE: Record<Clef, string[]> = {
+  bass: naturalRange(2, "C", 4, "A"),
+  treble: naturalRange(3, "A", 6, "B"),
+};
+
+/**
+ * One hand's staff, drawn directly under that hand's keyboard (bass clef under
+ * the left hand, treble under the right). While a chord is active it shows only
+ * the exact notes that hand has lit — never every octave of a pitch class.
+ */
+export function HandStaff({
+  clef,
+  chordActive,
   chordVoicing,
   chordGhost,
-  trebleChordVoicing,
 }: {
-  /** Left-hand notes of the active chord, drawn on the bass clef. */
+  clef: Clef;
+  chordActive: boolean;
   chordVoicing?: StaffChordVoicingNote[];
   chordGhost?: StaffChordGhostNote;
-  /** Right-hand notes of the active chord, drawn on the treble clef. */
-  trebleChordVoicing?: StaffChordVoicingNote[];
 }) {
   const { highlights, exactMidi, note, notationMode, t, searchNote } = useMusicSelection();
-  // Each clef covers that hand's full compass on the instrument (right: A3–B6,
-  // left: C2–A4), so every existing note is visible on at least one staff —
-  // they deliberately overlap in the middle register rather than handing off
-  // cleanly at middle C.
-  const treble = naturalRange(3, "A", 6, "B");
-  const bass = naturalRange(2, "C", 4, "A");
-
-  // A single searched/clicked note with an accidental (Fá♯, Si♭...) — shown
-  // on whichever clef(s) its octave actually falls in, same as a natural
-  // note. Never set at the same time as a chord (searching one clears the
-  // other), so this never doubles up with chordVoicing's own accidentals.
-  const singleNoteAccidental = singleNoteAccidentalEntries(note);
-
-  function selectStaffPitch(pitch: string) {
-    searchNote(pitchToLatin(pitch));
-  }
-
-  // A chord paints each clef with the exact notes its hand is showing on the
-  // keyboard (left hand → bass clef, right hand → treble clef), never "every
-  // octave of that pitch class". While a chord is active the treble clef shows
-  // only the right-hand notes it was given.
-  const hasChordVoicing = Boolean(chordVoicing || trebleChordVoicing);
+  const label = clef === "bass" ? t.bassClef : t.trebleClef;
 
   return (
-    <section className="staff-panel">
-      <div className="section-heading staff-heading">
-        <div>
-          <span>{t.staffHeading}</span>
-          <small>{t.staffSubtitle}</small>
-        </div>
-        <div className="section-rule" />
-      </div>
-
-      <div className="score-sheet">
-        <div className="score-watermark">{t.staffWatermark}</div>
-        <div className="staff-group">
-          <div className="staff-title"><span>𝄢</span> {t.bassClef}</div>
-          <StaffLine
-            clef="bass"
-            clefLabel={t.bassClef}
-            notes={bass}
-            highlights={highlights}
-            exactMidi={exactMidi}
-            chordVoicing={chordVoicing}
-            chordGhost={chordGhost}
-            singleNoteAccidental={singleNoteAccidental}
-            notationMode={notationMode}
-            onSelectPitch={selectStaffPitch}
-          />
-        </div>
-        <div className="score-divider" />
-        <div className="staff-group">
-          <div className="staff-title"><span>𝄞</span> {t.trebleClef}</div>
-          <StaffLine
-            clef="treble"
-            clefLabel={t.trebleClef}
-            notes={treble}
-            highlights={hasChordVoicing ? [] : highlights}
-            exactMidi={exactMidi}
-            chordVoicing={trebleChordVoicing}
-            singleNoteAccidental={singleNoteAccidental}
-            notationMode={notationMode}
-            onSelectPitch={selectStaffPitch}
-          />
-        </div>
-        <div className="score-footnote">{t.staffFootnote}</div>
-      </div>
-    </section>
+    <div className="hand-staff">
+      <div className="staff-title"><span>{clef === "bass" ? "𝄢" : "𝄞"}</span> {label}</div>
+      <StaffLine
+        clef={clef}
+        clefLabel={label}
+        notes={CLEF_RANGE[clef]}
+        highlights={chordActive ? [] : highlights}
+        exactMidi={exactMidi}
+        chordVoicing={chordVoicing}
+        chordGhost={chordGhost}
+        singleNoteAccidental={singleNoteAccidentalEntries(note)}
+        notationMode={notationMode}
+        onSelectPitch={(pitch) => searchNote(pitchToLatin(pitch))}
+      />
+    </div>
   );
 }

@@ -8,7 +8,7 @@ import { MusicScore } from "./components/MusicScore";
 import { ParrillaPositionPanel } from "./components/ParrillaPositionPanel";
 import { PieceVoicingPanel } from "./components/PieceVoicingPanel";
 import { Segmented } from "./components/Segmented";
-import { Staff } from "./components/Staff";
+import { HandStaff } from "./components/Staff";
 import { UpdateBanner } from "./components/UpdateBanner";
 import type { Strings } from "./i18n/strings";
 import { findChordPositions, type ChordPositionCombo, type ChordPositionResult } from "./music/chordPositions";
@@ -596,7 +596,9 @@ function AppShell() {
             notationMode={notationMode}
             t={t}
             onSelectButton={selectButton}
-          />
+          >
+            <HandStaff clef="bass" chordActive={Boolean(chord)} chordVoicing={staffChordVoicing} chordGhost={staffChordGhost} />
+          </Keyboard>
         )}
 
         {handMode !== "left" && (
@@ -612,7 +614,9 @@ function AppShell() {
             notationMode={notationMode}
             t={t}
             onSelectButton={selectButton}
-          />
+          >
+            <HandStaff clef="treble" chordActive={Boolean(chord)} chordVoicing={trebleChordVoicing} />
+          </Keyboard>
         )}
       </section>
 
@@ -635,8 +639,6 @@ function AppShell() {
         onLeftCombo={setLeftCombo}
         onRightCombo={setRightCombo}
       />
-
-      <Staff chordVoicing={staffChordVoicing} chordGhost={staffChordGhost} trebleChordVoicing={trebleChordVoicing} />
 
       <MusicScore t={t} />
 

@@ -49,7 +49,20 @@
 
 * { box-sizing: border-box; }
 html { background: var(--bg); }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); font-size: 14px; line-height: 1.4; }
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.4;
+  /* Soft colour fields behind the glass console; fixed so they stay put while scrolling. */
+  background:
+    radial-gradient(42rem 30rem at 12% 34%, rgba(229, 154, 12, .16), transparent 70%),
+    radial-gradient(40rem 32rem at 88% 58%, rgba(39, 103, 214, .13), transparent 70%),
+    radial-gradient(36rem 26rem at 50% 96%, rgba(209, 47, 106, .08), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]:focus-visible, label:focus-within > .switch-track {
@@ -259,7 +272,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .console {
   --text: #f4f0e6;
   --text-dim: #b6b0a2;
-  --text-faint: #807a6e;
+  --text-faint: #a8a294;
   --border: rgba(255, 255, 255, .1);
   --border-strong: rgba(255, 255, 255, .26);
   --surface: rgba(255, 255, 255, .06);
@@ -401,8 +414,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .cpc-status-incomplete { color: var(--danger); background: rgba(197, 58, 43, .1); }
 .cpc-missing { margin-top: 9px; font-size: 13px; }
 .cpc-hint { margin-top: 5px; font-size: 12px; color: var(--text-dim); }
-.cpc-suggestion-label { margin-top: 8px; font-size: 12px; color: var(--text-dim); }
-.cpc-suggestion-label em { font-style: normal; color: var(--text-faint); }
 .cpc-combo { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .cpc-chip { display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 10px; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--border); }
 .cpc-chip b { font-size: 13px; }
@@ -431,14 +442,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 
 /* ---------- Sections: staff and score ---------- */
 
-.staff-panel, .music-panel { margin-top: 4px; }
+.music-panel { margin-top: 4px; }
 .section-heading { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
 .section-heading > div:first-child { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; flex: 0 1 auto; }
 .section-heading span { font-family: var(--serif); font-size: 30px; font-weight: 400; line-height: 1; }
 .section-heading small { color: var(--text-faint); font-size: 12px; }
 .section-rule { height: 1px; background: var(--border); flex: 1; }
 
-.score-sheet, .music-sheet {
+.music-sheet {
   position: relative;
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
@@ -446,16 +457,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
   box-shadow: var(--shadow-1);
   color: #1a1a1f;
 }
-.score-sheet { overflow: hidden; padding: 10px 14px 8px; }
-/* Wide screens: treble and bass side by side, so the whole staff fits in about half the height. */
-@media (min-width: 1200px) {
-  .score-sheet { display: grid; grid-template-columns: 20fr 23fr; gap: 0 20px; align-items: end; }
-  .score-sheet .score-divider { display: none; }
+/* Each hand's staff sits right under its keyboard, as a paper strip inside the console. */
+.hand-staff {
+  margin-top: 10px;
+  padding: 6px 10px 4px;
+  border-radius: var(--r-md);
+  background: #fbf9f4;
+  color: #1a1a1f;
 }
-.score-watermark { display: none; }
-.staff-group { position: relative; }
-.staff-title { margin: 2px 4px 0; color: var(--text-dim); font-size: 13px; font-weight: 700; }
-.staff-title span { font-size: 22px; vertical-align: middle; margin-right: 6px; color: var(--text); }
+.staff-title { margin: 0 2px; color: #5d584f; font-size: 12px; font-weight: 650; }
+.staff-title span { font-size: 20px; vertical-align: middle; margin-right: 6px; color: #1b1a17; }
 .staff-scroll { overflow: hidden; }
 .staff-svg { width: 100%; height: auto; display: block; }
 .staff-line, .ledger { stroke: #2e2e34; stroke-width: 1.25; }
@@ -474,8 +485,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .staff-note.active.tone-seventh .staff-note-label { fill: #a83a5c; }
 .staff-note.ghost ellipse { fill: none; stroke: rgba(26, 26, 31, .45); stroke-width: 1.2; stroke-dasharray: 2 2.5; }
 .staff-note.ghost .staff-note-label { fill: rgba(26, 26, 31, .5); font-weight: 700; }
-.score-divider { height: 1px; margin: -4px 10px 7px; background: var(--border); }
-.score-footnote { display: none; }
 
 .music-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .music-file-btn {
@@ -496,8 +505,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [role="button"]
 .music-file-btn.disabled { opacity: .5; pointer-events: none; }
 .music-file-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .music-filename { color: var(--text-dim); font-size: 13px; }
-.music-sheet { min-height: 120px; padding: 16px 18px; }
-.music-empty-state { color: var(--text-faint); font-size: 14px; text-align: center; padding: 32px 0; }
+.music-sheet { padding: 16px 18px; }
+.music-sheet.empty { padding: 0; border: 0; box-shadow: none; background: transparent; }
 .music-osmd-container { cursor: pointer; }
 .music-osmd-container svg { max-width: 100%; height: auto; }
 
@@ -607,10 +616,15 @@ footer {
 
 .metronome-popover { background: rgba(255, 255, 255, .78); backdrop-filter: blur(22px) saturate(170%); -webkit-backdrop-filter: blur(22px) saturate(170%); }
 .update-banner { background: rgba(251, 237, 200, .82); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); }
+/* The console is smoked glass: the page's soft colour fields read through it.
+   The keyboard faces inside stay solid, so the buttons never lose contrast. */
 .console {
   background:
-    radial-gradient(120% 90% at 12% -10%, rgba(255, 255, 255, .1), transparent 58%),
-    linear-gradient(180deg, #1e1d22 0%, #141317 100%);
+    radial-gradient(120% 90% at 12% -10%, rgba(255, 255, 255, .12), transparent 58%),
+    linear-gradient(180deg, rgba(30, 29, 35, .82) 0%, rgba(18, 17, 21, .9) 100%);
+  backdrop-filter: blur(26px) saturate(165%);
+  -webkit-backdrop-filter: blur(26px) saturate(165%);
+  border-color: rgba(255, 255, 255, .14);
 }
 .console .segmented, .console .chord-tones span {
   background: rgba(255, 255, 255, .07);
@@ -620,7 +634,7 @@ footer {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
 }
 .console .chord-tones span.muted { background: transparent; box-shadow: none; }
-.console .keyboard-face { background: rgba(0, 0, 0, .46); border-color: rgba(255, 255, 255, .08); }
+.console .keyboard-face { background: #0c0b0e; border-color: rgba(255, 255, 255, .08); }
 .instrument-stage.has-selection .key-button:not(.active) .key-octave { opacity: .6; }
 
 /* ---------- Responsive ---------- */
@@ -660,7 +674,8 @@ footer {
   .keyboard-face { padding: 6px 4px 2px; }
   .panel-direction { display: none; }
   .selection-bar { min-height: 64px; }
-  .score-sheet, .music-sheet { padding-inline: 8px; }
+  .music-sheet:not(.empty) { padding-inline: 8px; }
+  .hand-staff { padding-inline: 4px; }
   .metronome-popover { position: fixed; top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; }
   .metronome-toggle { margin-left: 0; width: 100%; }
 }

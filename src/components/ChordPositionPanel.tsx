@@ -56,9 +56,6 @@ export function ChordPositionPanel({ handLabel, result, direction, otherDirectio
         </div>
       ) : active ? (
         <>
-          <div className="cpc-suggestion-label">
-            {t.suggestedPosition} <em>{t.suggestedDisclaimer}</em>
-          </div>
           <div className="cpc-combo">
             {active.assignments.map((assignment) => (
               <span
